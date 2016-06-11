@@ -6,7 +6,9 @@
  * @version 1.0.1
  * Start: 2016.6.11 20:12
  * End: 2016.6.11 20:46
- * 
+ * @version 1.0.2
+ * Start: 2016.6.11 21:21
+ * End: 2016.6.11 21:35
  * 
  */
 
@@ -124,4 +126,58 @@ while( $font_size>8 &&
     );
 /**
  * @see End : 2016.6.11  20:46
+ * @see Start : 2016.6.11 21:21
  */
+if ( $height_text>$height_image_wo_margins ||
+     $width_text>$width_image_wo_margins ){
+    /**
+     * This means "No readable font size will fit on button"
+     */
+    echo 'Text given will not fit on button.<br />';
+} else {
+     
+    /**
+     * @todo
+     * We have found a font size that will fit.
+     * Now work out where to put it.
+     */
+    
+    $text_x = $width_image/2.0 - $width_text/2.0 ;
+    $text_y = $height_image/2.0 - $height_text ;
+    
+    if ($left_text < 0){
+        $text_x += abs($left_text);
+        /**
+         * Add factor for left overhang
+         */
+    }
+    
+    
+    /**
+     * @var above_line_text
+     * How far above the baseline?
+     * @todo
+     * Add baseline factor
+     */
+    $above_line_text = abs($bbox[7]);
+    $text_y += $above_line_text;
+    
+    /**
+     * @todo 
+     * adjustment factor for shape of our template.
+     */
+    
+    $text_y -= 2;
+    
+    $white = imagecolorallocate($im, 255, 255, 255);
+    
+    imagettftext($im, $font_size, 0, $text_x, $text_y, $white, $fontname, $button_text);
+    
+    header('Content-type: image/png');
+    imagepng ($im);
+}
+imagedestroy($im);
+/**
+ * @see End 2016.6.11 21:35
+ */
+?>
