@@ -3,10 +3,18 @@
  * @author Axoford12
  * @see QQ : 847072154
  * @since 2016.6.11
+ * -------------------------------
  * @version 1.1.0
+ * -------------------------------
  * Start: 2016.6.12 (10:45)
- * End: 2015.6.12   (10:51)
+ * End: 2016.6.12   (10:51)
  * Updates : Part (1 -> 2);
+ * -------------------------------
+ * @version 1.1.1
+ * -------------------------------
+ * Start: 2016.6.13 (10:46)
+ * End: 2016.6.13   (11:44)
+ * Updates : Part(3 -> 4);
  */
 /*********************************************
  * Database query to get poll into  <Part 1> *                        
@@ -134,3 +142,123 @@ $bar_unit = ($width - ($x + $right_margin)) / 100;# One Point on the graph
  * Calculate height of graph - bars plus some margin
  */
 $height = $num_candidates * ($bar_height + $bar_spacing) + 50;
+
+
+/************************************
+ * Set up base image  <Part 3>      *
+ ************************************/
+
+/**
+ * @todo Create a blank canvas
+ */
+ $im = imagecreatetruecolor($width, $height);
+ 
+ 
+ /**
+  * @todo Allocate colors
+  * 
+  */
+ 
+ $white = imagecolorallocate($im, 255, 255, 255);
+ $blue = imagecolorallocate($im, 0, 64, 128);
+ $black = imagecolorallocate($im, 0, 0, 0);
+ $pink = imagecolorallocate($im, 255, 78, 243);
+ 
+ $text_color = $black;
+ $percent_color = $black;
+ $bg_color = $white;
+ $line_color = $black;
+ $bar_color = $blue;
+ $number_color = $pink;
+ 
+ 
+ /**
+  * @todo Create 'canvas' to draw on.
+  */
+ imagefilledrectangle($im, 0, 0, $width, $height, $bg_color);
+ 
+ /**
+  * @todo Draw outline around canvas.
+  */
+ 
+imagerectangle($im, 0, 0, $width-1, $height-1, $line_color);
+
+/**
+ * @todo Add title
+ */
+$title = 'Poll Results';
+$title_dimensions = imagettfbbox($title_size, 0, $font, $title);
+$title_length = $title_dimensions[2] - $title_dimensions[1];
+$title_height = abs($title_dimensions[7] - $title_dimensions[1]);
+$title_above_line = abs($title_dimensions[7]);
+$title_x = ($width - $title_length) / 2;#  Center in x
+$title_y = ($y - $title_height) / 2 + $title_above_line;# Center in y graph 
+imagettftext($im, $title_size, 0, $title_x, $title_y, $text_color, $font, $title);
+
+
+/** 
+ * @todo Draw a base line from a little above first bar location
+ * To a little below last
+ */
+
+imageline($im,$x,$y-5,$x,$height-15,$line_color);
+
+
+/*********************************************
+ *        Draw data into graph    <Part 4>   *    
+ *********************************************/
+
+
+/**
+ * @todo Get each line of database date and draw corresponding bars
+ */
+
+while (@$row = $result->fetch_object()){
+    if ($total_votes > 0) {
+        $percent = intval(($row->num_votes / $total_votes) * 100);
+        
+    } else {
+        $percent = 0;
+    }
+    # Display percent for this value.
+    $percent_dimensions = imagettfbbox($main_size, 0, $font, $percent.'%');
+    $percent_length = $percent_dimensions[2] - $percent_dimensions[0];
+    imagettftext($im, $main_size, 0, $width-$percent_length-$text_indent, $y+($bar_height / 2), $percent_color, $font, $percent.'%');
+    
+    # Length for bar for this value
+    $bar_length = $x + ($percent * $bar_unit);
+    
+    # Draw bar for this value
+    imagefilledrectangle($im, $x, $y-2, $bar_length, $y+$bar_height, $bar_color);
+    
+    # Draw title for this value
+    imagerectangle($im, $bar_length+1,
+        $y-2, ($x+(100*$bar_unit)), 
+        $y+$bar_height, $line_color);
+    
+    # Display numbers
+    
+    imagettftext($im, $small_size, 0, $x+(100*$bar_unit)-50, $y+($bar_height/2),
+         $number_color, $font, $row->num_votes.'/'.$total_votes);
+    
+    # Move down to next bar
+    $y = $y + ($bar_height+$bar_spacing);
+    
+}
+
+
+
+/*************************************
+ *   Display image                   *
+ *************************************/
+header('Content-type: image/png');
+imagepng($im);
+
+
+
+/*************************************
+ *   Clean up                        *
+ *************************************/
+
+imagedestroy($im);
+?>
