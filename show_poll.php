@@ -43,7 +43,7 @@
  
  if (!empty($vote)){
      $vote = addslashes($vote);
-     $query = 'update poll_resultss '
+     $query = 'update poll_results '
              .'set num_votes = num_votes + 1 '
              ."where candidate = '$vote'";
      if(!$result = @$db_conn->query($query)){
